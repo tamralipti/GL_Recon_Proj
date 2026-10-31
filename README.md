@@ -63,3 +63,45 @@ Architecture
 
          Databricks Dashboard
       Power BI / Tableau Optional
+      
+      
+      
+# Stock Cash Reconciliation Platform
+
+## Objective
+
+Build an end-to-end Databricks Lakehouse solution to:
+
+- Ingest stock transactions
+- Ingest cash transactions
+- Ingest overhead costs
+- Implement Medallion Architecture
+- Reconcile financial movements
+- Build executive dashboards
+
+## Technologies
+
+- Azure Databricks
+- Unity Catalog
+- Delta Lake
+- Auto Loader
+- Delta Live Tables
+- Databricks Workflows
+- Databricks Dashboards
+- Azure Data Lake Storage Gen2
+
+## Architecture
+
+Source → Bronze → Silver → Gold
+
+## External Locations
+
+- source_ext
+- bronze_ext
+- silver_ext
+- gold_ext
+
+
+
+
+ 

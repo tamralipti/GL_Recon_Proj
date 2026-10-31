@@ -1,0 +1,13 @@
+bundle:
+  name: stock-cash-reconciliation
+
+targets:
+  dev:
+    default: true
+
+resources:
+  jobs:
+    reconciliation_job:
+      name: reconciliation_job
+	  
+	

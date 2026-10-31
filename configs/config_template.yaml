@@ -1,0 +1,20 @@
+project:
+  name: stock-cash-reconciliation
+
+storage:
+  account: <storage_account>
+
+external_locations:
+  source: source_ext
+  bronze: bronze_ext
+  silver: silver_ext
+  gold: gold_ext
+
+credential:
+  name: <storage_credential>
+
+catalog:
+  name: <catalog_name>
+  
+  
+  
