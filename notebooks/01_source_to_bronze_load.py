@@ -20,11 +20,6 @@ p_file_name = dbutils.widgets.get("file_name")
 ##df = spark.read.format("csv").option("ignoreCorruptFiles", "true").load(f"abfss://source@glreconstorageaaccount.dfs.core.windows.net/{p_file_name}") ## When file placed in external location of Azure Storage Account
 filepath = f"dbfs:/Volumes/workspace/default/source/{p_file_name}.csv" 
 
-df = spark.read.csv(filepath, header=True, inferSchema=True)
-
-df = df.withColumn("ingestion_date", localtimestamp())
-
-display(df)
 
 # COMMAND ----------
 
@@ -37,6 +32,8 @@ df = spark.read.format("csv")\
     .option("header","true")\
     .option("inferSchema","true")\
     .load(filepath) 
+
+df = df.withColumn("ingestion_date", localtimestamp())
 
 df.write.format("delta")\
     .mode("overwrite")\
