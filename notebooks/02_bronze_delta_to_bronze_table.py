@@ -10,17 +10,61 @@ p_file_name = dbutils.widgets.get("file_name")
 
 # COMMAND ----------
 
-folder_path = f"/Volumes/workspace/default/bronze/checkpoint_{p_file_name}"
-target_table = f"glrecon.bronze.{p_file_name}"
+table_name = f"glrecon.bronze.{p_file_name}"
+# Ensure this points to the actual Delta data folder, not a streaming checkpoint folder
+delta_path = f"/Volumes/workspace/default/bronze/checkpoint_{p_file_name}" 
 
-# 2. Ensure the bronze schema exists in Unity Catalog
-spark.sql("CREATE SCHEMA IF NOT EXISTS glrecon.bronze")
+if spark.catalog.tableExists(table_name):
+    spark.sql(f"""
+        ALTER TABLE {table_name}
+        SET TBLPROPERTIES ('delta.feature.timestampNtz' = 'supported')
+    """)
+else:
+    df = spark.read.format("delta").load(delta_path)
+    (
+        df.write.format("delta")
+        .option("delta.feature.timestampNtz", "supported")
+        .saveAsTable(table_name)
+    )
 
-# 3. Read the Delta data from the Volume
-df = spark.read.format("delta").load(folder_path)
+# COMMAND ----------
 
-# 4. Write the data into a managed Bronze Delta table
-df.write.format("delta").mode("overwrite").saveAsTable(target_table)
+# MAGIC %sql
+# MAGIC --SHOW TBLPROPERTIES glrecon.bronze.stock_transactions
 
-# 5. Verify the table was created
-display(spark.table(target_table))
+# COMMAND ----------
+
+from pyspark.sql import DataFrame
+
+def write_to_bronze_generic(df: DataFrame, target_table: str, mode: str = "overwrite"):
+    """
+    Safely writes a DataFrame to a Unity Catalog Delta table, dynamically adding 
+    any new columns via ALTER TABLE to bypass Table ACL schema migration limits.
+    """
+    # 1. Check if the target table already exists
+    if spark.catalog.tableExists(target_table):
+        target_cols = {field.name.lower() for field in spark.table(target_table).schema}
+        
+        # 2. Identify columns present in the DataFrame but missing from the target table
+        missing_cols = [
+            f"{field.name} {field.dataType.simpleString()}"
+            for field in df.schema
+            if field.name.lower() not in target_cols
+        ]
+        
+        # 3. Explicitly add missing columns via ALTER TABLE
+        if missing_cols:
+            cols_sql = ", ".join(missing_cols)
+            print(f"Adding new columns to {target_table}: {cols_sql}")
+            spark.sql(f"ALTER TABLE {target_table} ADD COLUMNS ({cols_sql})")
+
+ 
+    # 4. Write the DataFrame to the Bronze table
+    df.write.format("delta").mode(mode).saveAsTable(target_table)
+    print(f"Successfully wrote data to {target_table}")
+
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- select * from glrecon.bronze.stock_transactions order by product_id
