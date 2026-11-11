@@ -7,5 +7,74 @@ targets:
 
 resources:
   jobs:
-    reconciliation_job:
-      name: reconciliation_job
+    Source_To_Bronze_Pipelines:
+      name: Source_To_Bronze_Pipelines
+      tasks:
+        - task_key: BronzeLoadParameters
+          notebook_task:
+            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/00_file_parameters
+            source: WORKSPACE
+        - task_key: SourceToBronzeLoad
+          depends_on:
+            - task_key: BronzeLoadParameters
+          for_each_task:
+            inputs: "{{tasks.BronzeLoadParameters.values.Output_Datasets}}"
+            task:
+              task_key: SourceToBronzeLoad_iteration
+              notebook_task:
+                notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/01_source_to_bronze_load
+                base_parameters:
+                  file_name: "{{input.file_name}}"
+                source: WORKSPACE
+        - task_key: Load_in_Bronze_table
+          depends_on:
+            - task_key: SourceToBronzeLoad
+          for_each_task:
+            inputs: "{{tasks.BronzeLoadParameters.values.Output_Datasets}}"
+            task:
+              task_key: Load_in_Bronze_table_iteration
+              notebook_task:
+                notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/02_bronze_delta_to_bronze_table
+                base_parameters:
+                  file_name: "{{input.file_name}}"
+                source: WORKSPACE
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
+
+    Bronze_To_Silver_Pipelines:
+      name: Bronze_To_Silver_Pipelines
+      trigger:
+        pause_status: UNPAUSED
+        table_update:
+          table_names:
+            - glrecon.bronze.product_master
+            - glrecon.bronze.cash_transactions
+            - glrecon.bronze.stock_transactions
+            - glrecon.bronze.overhead_costs
+          condition: ALL_UPDATED
+      tasks:
+        - task_key: Cash_Transaction_Silver_Load
+          notebook_task:
+            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/04_Cash_Transaction_Silver_Layer
+            source: WORKSPACE
+        - task_key: Overhead_Silver_Load
+          notebook_task:
+            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/06_Overhead_Silver_Layer
+            source: WORKSPACE
+        - task_key: Product_Silver_Load
+          notebook_task:
+            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/03_Product_Silver_Layer
+            source: WORKSPACE
+        - task_key: Stock_Transaction_Silver_Load
+          notebook_task:
+            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/05_Stock_Transaction_Silver_Layer
+            source: WORKSPACE
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
+
+
+
+
+
