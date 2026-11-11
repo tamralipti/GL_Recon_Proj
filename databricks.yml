@@ -9,5 +9,3 @@ resources:
   jobs:
     reconciliation_job:
       name: reconciliation_job
-	  
-	

@@ -96,7 +96,7 @@ else:
             "ProductId": "source.ProductId",
             "TransDescription": "source.TransDescription",
             "Quantity": "source.Quantity",
-            "Unit"
+            "UnitPrice": "source.UnitPrice",
             "TransactionDate": "source.TransactionDate",
             "CreateDate": "source.CreateDate",
             "UpdateDate": F.current_timestamp()
