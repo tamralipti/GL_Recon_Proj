@@ -76,5 +76,34 @@ resources:
 
 
 
-
+    Silver_To_Gold_Pipelines:
+      name: Silver_To_Gold_Pipelines
+      trigger:
+        pause_status: UNPAUSED
+        table_update:
+          table_names:
+            - glrecon.gold.gold_dim_products
+            - glrecon.gold.gold_fact_daily_gl_summary
+            - glrecon.gold.gold_fact_stock_cash_recon
+          condition: ALL_UPDATED
+      tasks:
+        - task_key: Daily_GL_Gold_Load
+          depends_on:
+            - task_key: Product_Gold_Load
+          notebook_task:
+            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/09_Fact_Daily_GL_Summary_Gold_Layer
+            source: WORKSPACE
+        - task_key: Product_Gold_Load
+          notebook_task:
+            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/07_Dim_Product_Gold_Layer
+            source: WORKSPACE
+        - task_key: Stock_Cash_Gold_Load
+          depends_on:
+            - task_key: Product_Gold_Load
+          notebook_task:
+            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/08_Fact_Stock_Cash_Recon_Gold_Layer
+            source: WORKSPACE
+      queue:
+        enabled: true
+      performance_target: PERFORMANCE_OPTIMIZED
 
