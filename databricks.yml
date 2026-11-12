@@ -1,9 +1,17 @@
 bundle:
   name: stock-cash-reconciliation
 
+workspace:
+  root_path: /Workspace/Users/tamralipti@icloud.com/.bundle/${bundle.name}/${bundle.target}
+
 targets:
   dev:
     default: true
+    workspace:
+      host: https://your-dev-workspace.cloud.databricks.com
+  prod:
+    workspace:
+      host: https://your-prod-workspace.cloud.databricks.com
 
 resources:
   jobs:
@@ -12,7 +20,7 @@ resources:
       tasks:
         - task_key: BronzeLoadParameters
           notebook_task:
-            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/00_file_parameters
+            notebook_path: ./notebooks/00_file_parameters
             source: WORKSPACE
         - task_key: SourceToBronzeLoad
           depends_on:
@@ -22,7 +30,7 @@ resources:
             task:
               task_key: SourceToBronzeLoad_iteration
               notebook_task:
-                notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/01_source_to_bronze_load
+                notebook_path: ./notebooks/01_source_to_bronze_load
                 base_parameters:
                   file_name: "{{input.file_name}}"
                 source: WORKSPACE
@@ -34,7 +42,7 @@ resources:
             task:
               task_key: Load_in_Bronze_table_iteration
               notebook_task:
-                notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/02_bronze_delta_to_bronze_table
+                notebook_path: ./notebooks/02_bronze_delta_to_bronze_table
                 base_parameters:
                   file_name: "{{input.file_name}}"
                 source: WORKSPACE
@@ -56,25 +64,23 @@ resources:
       tasks:
         - task_key: Cash_Transaction_Silver_Load
           notebook_task:
-            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/04_Cash_Transaction_Silver_Layer
+            notebook_path: ./notebooks/04_Cash_Transaction_Silver_Layer
             source: WORKSPACE
         - task_key: Overhead_Silver_Load
           notebook_task:
-            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/06_Overhead_Silver_Layer
+            notebook_path: ./notebooks/06_Overhead_Silver_Layer
             source: WORKSPACE
         - task_key: Product_Silver_Load
           notebook_task:
-            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/03_Product_Silver_Layer
+            notebook_path: ./notebooks/03_Product_Silver_Layer
             source: WORKSPACE
         - task_key: Stock_Transaction_Silver_Load
           notebook_task:
-            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/05_Stock_Transaction_Silver_Layer
+            notebook_path: ./notebooks/05_Stock_Transaction_Silver_Layer
             source: WORKSPACE
       queue:
         enabled: true
       performance_target: PERFORMANCE_OPTIMIZED
-
-
 
     Silver_To_Gold_Pipelines:
       name: Silver_To_Gold_Pipelines
@@ -91,19 +97,18 @@ resources:
           depends_on:
             - task_key: Product_Gold_Load
           notebook_task:
-            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/09_Fact_Daily_GL_Summary_Gold_Layer
+            notebook_path: ./notebooks/09_Fact_Daily_GL_Summary_Gold_Layer
             source: WORKSPACE
         - task_key: Product_Gold_Load
           notebook_task:
-            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/07_Dim_Product_Gold_Layer
+            notebook_path: ./notebooks/07_Dim_Product_Gold_Layer
             source: WORKSPACE
         - task_key: Stock_Cash_Gold_Load
           depends_on:
             - task_key: Product_Gold_Load
           notebook_task:
-            notebook_path: /Workspace/Users/tamralipti@icloud.com/GL_Recon_Proj/notebooks/08_Fact_Stock_Cash_Recon_Gold_Layer
+            notebook_path: ./notebooks/08_Fact_Stock_Cash_Recon_Gold_Layer
             source: WORKSPACE
       queue:
         enabled: true
       performance_target: PERFORMANCE_OPTIMIZED
-
